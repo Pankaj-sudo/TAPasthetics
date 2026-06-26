@@ -181,6 +181,27 @@
     .nav-link:hover, .nav-link.active { color: var(--rose-gold); }
     .nav-link:hover::after, .nav-link.active::after { width: 100%; }
     .nav-actions { display: flex; align-items: center; gap: .75rem; }
+    #nav-signin-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 14px;
+      background: rgba(201,149,108,.12);
+      border: 1px solid rgba(201,149,108,.35);
+      border-radius: 6px;
+      color: var(--rose-gold);
+      font-family: var(--font-body); font-size: 12px; font-weight: 600;
+      letter-spacing: .04em; white-space: nowrap;
+      transition: background .2s, border-color .2s, color .2s;
+      cursor: pointer;
+    }
+    #nav-signin-btn:hover { background: rgba(201,149,108,.22); border-color: var(--rose-gold); }
+    #nav-signin-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    #nav-signin-btn.signed-in {
+      background: rgba(34,197,94,.08);
+      border-color: rgba(34,197,94,.3);
+      color: #22C55E;
+    }
+    #nav-signin-btn.signed-in:hover { background: rgba(34,197,94,.14); border-color: #22C55E; }
+    @media (max-width: 480px) { #nav-signin-btn span.btn-label { display: none; } }
     .nav-icon-btn {
       position: relative; width: 40px; height: 40px;
       display: flex; align-items: center; justify-content: center;
@@ -1989,6 +2010,59 @@
       #mobile-bottom-nav { display: block; }
       body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
     }
+
+    /* ════════════════════════════════════════════════════
+       PACKAGE MODAL
+    ════════════════════════════════════════════════════ */
+    @keyframes pkgModalIn  { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+    @keyframes pkgModalOut { from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(.96)} }
+    #packageModalContainer.opening { animation: pkgModalIn  250ms ease forwards; }
+    #packageModalContainer.closing { animation: pkgModalOut 200ms ease forwards; }
+    #packageModalClose:hover { border-color:#C9956C !important; color:#C9956C !important; }
+    #packageModalAddBtn:hover:not(:disabled) { filter:brightness(1.12); transform:translateY(-2px); }
+    #packageModalAddBtn:disabled { background:#333 !important; color:#666 !important; cursor:not-allowed !important; }
+    .pkg-opt {
+      display:flex; align-items:center; gap:12px;
+      border:1px solid rgba(255,255,255,.08); border-radius:10px;
+      padding:14px 16px; margin-bottom:8px; cursor:pointer;
+      background:rgba(255,255,255,.02);
+      transition:border-color .2s,background .2s; user-select:none;
+    }
+    .pkg-opt:hover { border-color:rgba(201,149,108,.35); background:rgba(201,149,108,.04); }
+    .pkg-opt.pkg-selected { border:1.5px solid #C9956C; background:rgba(201,149,108,.07); }
+    .pkg-radio {
+      width:18px; height:18px; border-radius:50%;
+      border:1.5px solid #444; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      transition:border-color .2s,background .2s;
+    }
+    .pkg-opt.pkg-selected .pkg-radio { border-color:#C9956C; background:#C9956C; }
+    .pkg-opt.pkg-selected .pkg-radio::after {
+      content:''; width:6px; height:6px; border-radius:50%; background:white; display:block;
+    }
+    .pkg-opt-icon  { width:20px; height:20px; flex-shrink:0; }
+    .pkg-opt-text  { flex:1; min-width:0; }
+    .pkg-opt-title {
+      font-family:Inter,sans-serif; font-size:14px; font-weight:600; color:white;
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    }
+    .pkg-opt-sub   { font-family:Inter,sans-serif; font-size:12px; color:#666; margin-top:2px; }
+    .pkg-badge     { font-family:Inter,sans-serif; font-size:9px; font-weight:700; padding:2px 8px; border-radius:99px; color:white; }
+    .pkg-badge-popular { background:#0D9488; }
+    .pkg-badge-budget  { background:#D97706; }
+    .pkg-opt-price { font-family:Inter,sans-serif; font-size:14px; font-weight:700; color:#C9956C; flex-shrink:0; }
+    .pkg-opt-price.pkg-free { color:#555; }
+    /* Make entire card the click target — children don't capture pointer events */
+    .product-card *, .na-card * { pointer-events:none; }
+    .product-card .btn-add-to-cart, .na-card .btn-add-to-cart { pointer-events:auto; }
+    /* Keep Quick View hover overlay on the card level */
+    .product-card:hover .card-qv-overlay,
+    .na-card:hover .card-qv-overlay { opacity:1; }
+    @media (max-width:768px) {
+      #packageModalContainer { flex-direction:column !important; max-height:95vh !important; overflow-y:auto !important; }
+      #packageModalLeft  { width:100% !important; height:260px !important; min-height:unset !important; }
+      #packageModalRight { width:100% !important; }
+    }
   </style>
 </head>
 <body>
@@ -2039,10 +2113,15 @@
         <li><a href="#calculator"   class="nav-link">Calculator</a></li>
       </ul>
       <div class="nav-actions">
-        <button id="account-btn" class="nav-icon-btn" aria-label="Sign in">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        <button id="nav-signin-btn" aria-label="Sign in with Google">
+          <!-- Google "G" logo -->
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
           </svg>
+          <span class="btn-label">Sign In</span>
         </button>
         <button id="cart-btn" class="nav-icon-btn" aria-label="Open cart (0 items)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -3147,7 +3226,8 @@
       from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged }
       from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, collection, getDocs, addDoc, doc, setDoc, serverTimestamp }
+    import { getFirestore, collection, getDocs, addDoc, doc, setDoc, serverTimestamp,
+             writeBatch, query, where, orderBy, limit }
       from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     import { getStorage, ref, uploadBytesResumable, getDownloadURL }
       from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
@@ -3170,6 +3250,7 @@
       auth    = getAuth(app);
       db      = getFirestore(app);
       storage = getStorage(app);
+      console.log('[TAP] Firebase initialized');
     } catch (err) {
       console.warn('[TAP] Firebase offline mode.', err.message);
     }
@@ -3356,39 +3437,39 @@
        PRODUCT DATA (33 products)
     ══════════════════════════════════════════════════ */
     const TAP_PRODUCTS = [
-      { name:'5Amino1mq -50mg',              price:4050,    category:'Recovery',          description:'Metabolic support peptide',         is_new_arrival:false },
-      { name:'AOD 5mg',                       price:2925,    category:'Recovery',          description:'Fat metabolism peptide',             is_new_arrival:true  },
-      { name:'BPC-157 10mg',                  price:2407.50, category:'Recovery',          description:'Gut & tissue repair peptide',        is_new_arrival:true  },
-      { name:'BPC157+TB500 10mg',             price:3240,    category:'Recovery',          description:'Combined healing peptide',           is_new_arrival:false },
-      { name:'Cagrilintide 5mg',              price:3645,    category:'Weight Management', description:'Appetite support peptide',           is_new_arrival:false },
-      { name:'CJC 1295 w/o DAC + IPA 10mg',  price:5512.50, category:'Recovery',          description:'Growth hormone peptide',             is_new_arrival:false },
-      { name:'DSIP 5mg',                      price:1935,    category:'Recovery',          description:'Sleep-related peptide',              is_new_arrival:false },
-      { name:'Epitalon 50mg',                 price:4387.50, category:'Anti-Aging',        description:'Longevity peptide',                  is_new_arrival:true  },
-      { name:'Epitalon 10mg',                 price:2070,    category:'Anti-Aging',        description:'Telomere-related peptide',           is_new_arrival:false },
-      { name:'GHK-CU 100mg',                  price:1912.50, category:'Skin',              description:'Collagen synthesis & skin repair',   is_new_arrival:true  },
-      { name:'GHK-CU 50mg',                   price:1687.50, category:'Skin',              description:'Collagen synthesis & skin repair',   is_new_arrival:false },
-      { name:'KPV 10mg',                       price:2475,    category:'Recovery',          description:'Anti-inflammatory peptide',          is_new_arrival:false },
-      { name:'KPV 5mg',                        price:2025,    category:'Recovery',          description:'Anti-inflammatory peptide',          is_new_arrival:false },
-      { name:'LL37 5mg',                       price:2700,    category:'Recovery',          description:'Immune peptide',                     is_new_arrival:false },
-      { name:'MOTS-C 10mg',                    price:2362.50, category:'Recovery',          description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'MOTS-C 40mg',                    price:5625,    category:'Recovery',          description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'NAD+ 500mg',                     price:2700,    category:'Recovery',          description:'Cellular support',                   is_new_arrival:true  },
-      { name:'PT-141 10mg',                    price:2407.50, category:'Aesthetic',         description:'Sexual wellness peptide',             is_new_arrival:false },
-      { name:'Retatrutide 10mg',               price:3352.50, category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:true  },
-      { name:'Retatrutide 30mg',               price:5625,    category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'Retatrutide 20mg',               price:4612.50, category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'Retatrutide 5mg',                price:2587.50, category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'Semax 5mg',                      price:1687.50, category:'Recovery',          description:'Cognitive peptide',                  is_new_arrival:false },
-      { name:'SNAP-8 10mg',                    price:2002.50, category:'Skin',              description:'Anti-aging cosmetic peptide',         is_new_arrival:true  },
-      { name:'Tesamorelin 10mg',               price:5287.50, category:'Recovery',          description:'Growth hormone peptide',              is_new_arrival:false },
-      { name:'Tirzepatide 10mg',               price:2250,    category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'Tirzepatide 15mg',               price:2857.50, category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'Tirzepatide 20mg',               price:3150,    category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'Tirzepatide 30mg',               price:3667.50, category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'Tirzepatide 40mg',               price:4320,    category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'Tirzepatide 50mg',               price:5017.50, category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'Tirzepatide 60mg',               price:5917.50, category:'Weight Management', description:'Metabolic peptide',                  is_new_arrival:false },
-      { name:'BacWater PH 10ml',               price:180,     category:'Supplies',          description:'Bacteriostatic water',               is_new_arrival:false }
+      { name:'5Amino1mq -50mg',        price:4050,    category:'Recovery',          description:'Metabolic support peptide',           is_new_arrival:false },
+      { name:'AOD 5mg',                price:2925,    category:'Recovery',          description:'Fat metabolism peptide',               is_new_arrival:true  },
+      { name:'BPC-157 10mg',           price:2407.50, category:'Recovery',          description:'Gut and tissue repair peptide',        is_new_arrival:true  },
+      { name:'BPC157+TB500 10mg',      price:3240,    category:'Recovery',          description:'Combined healing peptide',             is_new_arrival:false },
+      { name:'Cagrilintide 5mg',       price:3645,    category:'Weight Management', description:'Appetite support peptide',             is_new_arrival:false },
+      { name:'CJC 1295 DAC IPA 10mg', price:5512.50, category:'Recovery',          description:'Growth hormone peptide',               is_new_arrival:false },
+      { name:'DSIP 5mg',               price:1935,    category:'Recovery',          description:'Sleep-related peptide',                is_new_arrival:false },
+      { name:'Epitalon 50mg',          price:4387.50, category:'Anti-Aging',        description:'Longevity peptide',                    is_new_arrival:true  },
+      { name:'Epitalon 10mg',          price:2070,    category:'Anti-Aging',        description:'Telomere-related peptide',             is_new_arrival:false },
+      { name:'GHK-CU 100mg',           price:1912.50, category:'Skin',              description:'Collagen synthesis and skin repair',   is_new_arrival:true  },
+      { name:'GHK-CU 50mg',            price:1687.50, category:'Skin',              description:'Collagen synthesis and skin repair',   is_new_arrival:false },
+      { name:'KPV 10mg',               price:2475,    category:'Recovery',          description:'Anti-inflammatory peptide',            is_new_arrival:false },
+      { name:'KPV 5mg',                price:2025,    category:'Recovery',          description:'Anti-inflammatory peptide',            is_new_arrival:false },
+      { name:'LL37 5mg',               price:2700,    category:'Recovery',          description:'Immune peptide',                       is_new_arrival:false },
+      { name:'MOTS-C 10mg',            price:2362.50, category:'Recovery',          description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'MOTS-C 40mg',            price:5625,    category:'Recovery',          description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'NAD+ 500mg',             price:2700,    category:'Recovery',          description:'Cellular support',                     is_new_arrival:true  },
+      { name:'PT-141 10mg',            price:2407.50, category:'Aesthetic',         description:'Sexual wellness peptide',               is_new_arrival:false },
+      { name:'Retatrutide 10mg',       price:3352.50, category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:true  },
+      { name:'Retatrutide 30mg',       price:5625,    category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'Retatrutide 20mg',       price:4612.50, category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'Retatrutide 5mg',        price:2587.50, category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'Semax 5mg',              price:1687.50, category:'Recovery',          description:'Cognitive peptide',                    is_new_arrival:false },
+      { name:'SNAP-8 10mg',            price:2002.50, category:'Skin',              description:'Anti-aging cosmetic peptide',           is_new_arrival:true  },
+      { name:'Tesamorelin 10mg',       price:5287.50, category:'Recovery',          description:'Growth hormone peptide',               is_new_arrival:false },
+      { name:'Tirzepatide 10mg',       price:2250,    category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'Tirzepatide 20mg',       price:3150,    category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'Tirzepatide 30mg',       price:3667.50, category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'Tirzepatide 15mg',       price:2857.50, category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'Tirzepatide 50mg',       price:5017.50, category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'Tirzepatide 60mg',       price:5917.50, category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'Tirzepatide 40mg',       price:4320,    category:'Weight Management', description:'Metabolic peptide',                    is_new_arrival:false },
+      { name:'BacWater PH 10ml',       price:180,     category:'Supplies',          description:'Bacteriostatic water',                 is_new_arrival:false }
     ];
 
     /* ══════════════════════════════════════════════════
@@ -4108,13 +4189,48 @@
     async function seedProducts() {
       if (localStorage.getItem('tap_products_seeded') || !db) return;
       try {
+        console.log('[TAP] Seeding ' + TAP_PRODUCTS.length + ' products...');
         const col = collection(db, 'products');
         await Promise.all(TAP_PRODUCTS.map(p => addDoc(col, {
-          ...p, stock: p.category === 'Supplies' ? 100 : 20,
-          image_url: '', is_active: true, created_at: serverTimestamp()
+          name:           p.name,
+          price:          p.price,
+          category:       p.category,
+          description:    p.description,
+          is_new_arrival: p.is_new_arrival,
+          stock:          20,
+          image_url:      '',
+          is_active:      true,
+          created_at:     serverTimestamp()
         })));
         localStorage.setItem('tap_products_seeded', '1');
+        console.log('[TAP] All ' + TAP_PRODUCTS.length + ' products seeded.');
       } catch (err) { console.warn('[TAP] Seed failed:', err.message); }
+    }
+
+    async function clearAndReseedProducts() {
+      console.log('[TAP] Checking products...');
+      if (localStorage.getItem('tap_products_cleaned_v2')) return;
+      if (!db) return;
+
+      try {
+        console.log('[TAP] Clearing all products...');
+        const snapshot = await getDocs(collection(db, 'products'));
+        const docs = snapshot.docs;
+
+        for (let i = 0; i < docs.length; i += 500) {
+          const batch = writeBatch(db);
+          docs.slice(i, i + 500).forEach(d => batch.delete(d.ref));
+          await batch.commit();
+        }
+
+        localStorage.removeItem('tap_products_seeded');
+        localStorage.setItem('tap_products_cleaned_v2', 'true');
+        console.log('[TAP] Products cleared. Reseeding...');
+
+        await seedProducts();
+      } catch (err) {
+        console.error('[TAP] Clear failed:', err);
+      }
     }
 
     /* true only when real Firebase credentials have been pasted in */
@@ -4124,6 +4240,7 @@
     if (auth) {
       onAuthStateChanged(auth, user => {
         currentUser = user;
+        updateNavSigninBtn();
         if (user && checkoutPendingAfterAuth) {
           checkoutPendingAfterAuth = false;
           closeAuthModal();
@@ -4133,29 +4250,43 @@
     }
 
     async function loadProducts() {
-      renderSkeletons('new-arrivals-grid', 4);
-      renderSkeletons('product-grid', 8);
-      try {
-        if (!db || !isFirebaseConfigured) throw new Error('offline');
-        const snap = await getDocs(collection(db, 'products'));
-        if (snap.empty) {
-          await seedProducts();
-          const snap2 = await getDocs(collection(db, 'products'));
-          allProducts = snap2.docs.map(d => ({ id: d.id, ...d.data() }));
-        } else {
-          allProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        }
-      } catch {
-        allProducts = TAP_PRODUCTS.map((p, i) => ({
-          id: `local-${i}`, ...p,
-          stock: p.category === 'Supplies' ? 100 : 20,
-          image_url: '', is_active: true,
-          created_at: { seconds: Date.now() / 1000 - i * 60 }
-        }));
-      }
+      /* ── STEP 1: Render local data INSTANTLY — no waiting ── */
+      allProducts = TAP_PRODUCTS.map((p, i) => ({
+        id: `local-${i}`, ...p,
+        stock: 20, image_url: '', is_active: true,
+        created_at: { seconds: Date.now() / 1000 - i * 60 }
+      }));
+      console.log('[TAP] Rendering ' + allProducts.length + ' local products instantly');
       try { renderNewArrivals(); } catch (e) { console.warn('[TAP] renderNewArrivals:', e); }
       applyFilters();
       updateCartBadge();
+      console.log('[TAP] Cards rendered successfully');
+
+      /* ── STEP 2: Sync from Firestore in background ── */
+      if (!db || !isFirebaseConfigured) return;
+
+      try {
+        /* Clear stale Firestore data and reseed if this is first run */
+        await clearAndReseedProducts();
+
+        /* Fetch from Firestore (no composite index needed) */
+        console.log('[TAP] Fetching products from Firestore...');
+        const snap = await getDocs(collection(db, 'products'));
+        const products = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(p => p.is_active === true);
+
+        if (products.length > 0) {
+          allProducts = products;
+          console.log('[TAP] Got ' + products.length + ' products from Firestore — updating view');
+          try { renderNewArrivals(); } catch (e) { console.warn('[TAP] renderNewArrivals:', e); }
+          applyFilters();
+        } else {
+          console.warn('[TAP] Firestore returned 0 products — keeping local data');
+        }
+      } catch (err) {
+        console.warn('[TAP] Firebase sync failed, local data stays:', err.message);
+      }
     }
 
     /* ══════════════════════════════════════════════════
@@ -4334,10 +4465,15 @@
     ══════════════════════════════════════════════════ */
     function bindCardEvents(container) {
       container.querySelectorAll('[data-id]').forEach(card => {
-        card.addEventListener('click', () => openQuickView(card.dataset.id));
+        card.addEventListener('click', () => {
+          const product = allProducts.find(p => p.id === card.dataset.id);
+          if (product) openPackageModal(product);
+        });
         card.addEventListener('keydown', e => {
           if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault(); openQuickView(card.dataset.id);
+            e.preventDefault();
+            const product = allProducts.find(p => p.id === card.dataset.id);
+            if (product) openPackageModal(product);
           }
         });
       });
@@ -4579,10 +4715,47 @@
     /* ══════════════════════════════════════════════════
        NAV ACTIONS
     ══════════════════════════════════════════════════ */
+    function updateNavSigninBtn() {
+      const btn = document.getElementById('nav-signin-btn');
+      if (!btn) return;
+      const label = btn.querySelector('.btn-label');
+      if (currentUser) {
+        btn.classList.add('signed-in');
+        if (label) label.textContent = currentUser.displayName?.split(' ')[0] || 'Account';
+        btn.setAttribute('aria-label', 'Sign out');
+      } else {
+        btn.classList.remove('signed-in');
+        if (label) label.textContent = 'Sign In';
+        btn.setAttribute('aria-label', 'Sign in with Google');
+      }
+    }
+
     function initNavActions() {
-      document.getElementById('account-btn')?.addEventListener('click', () =>
-        showToast('Sign-in coming in a future session.', 'info')
-      );
+      const signinBtn = document.getElementById('nav-signin-btn');
+      if (signinBtn) {
+        signinBtn.addEventListener('click', () => {
+          if (currentUser) {
+            /* Signed in → sign out */
+            if (auth) {
+              import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js')
+                .then(({ signOut }) => signOut(auth))
+                .then(() => {
+                  currentUser = null;
+                  updateNavSigninBtn();
+                  showToast('Signed out successfully.', 'info');
+                })
+                .catch(() => showToast('Sign-out failed. Try again.', 'error'));
+            } else {
+              currentUser = null;
+              updateNavSigninBtn();
+              showToast('Signed out.', 'info');
+            }
+          } else {
+            /* Not signed in → open auth modal */
+            openAuthModal();
+          }
+        });
+      }
       document.getElementById('cart-btn')?.addEventListener('click', openCartDrawer);
 
       /* Cart drawer controls */
@@ -4961,6 +5134,367 @@
       _boot();
     }
 
+  /* ─── PACKAGE MODAL ──────────────────────────────────────── */
+
+  const TAP_PACKAGES = [
+    {
+      id: 'vial-only',
+      title: 'Vial Only',
+      sub: 'Peptide vial. Sterile diluent sold separately.',
+      priceAdd: 0,
+      badge: null,
+      icon: 'vial'
+    },
+    {
+      id: 'vial-bacwater',
+      title: 'Vial + BacWater',
+      sub: '30mL bacteriostatic water for reconstitution.',
+      priceAdd: 180,
+      badge: null,
+      icon: 'droplet'
+    },
+    {
+      id: 'vial-reusable-pen',
+      title: 'Vial + Reusable Pen',
+      sub: 'Precision dosing pen — reusable, refillable.',
+      priceAdd: 1500,
+      badge: 'MOST POPULAR',
+      badgeClass: 'pkg-badge-popular',
+      icon: 'syringe-filled'
+    },
+    {
+      id: 'vial-nonreuse-pen',
+      title: 'Vial + Non-Reusable Pen',
+      sub: 'Single-use auto-injector for convenience.',
+      priceAdd: 1000,
+      badge: 'BUDGET PICK',
+      badgeClass: 'pkg-badge-budget',
+      icon: 'syringe-outline'
+    }
+  ];
+
+  const TAP_PKG_ICONS = {
+    vial: `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="8" y="1" width="4" height="3" rx="1" fill="#C9956C"/>
+      <rect x="7" y="4" width="6" height="14" rx="3" fill="#C9956C" opacity="0.3"/>
+      <rect x="7" y="9" width="6" height="9" rx="2" fill="#C9956C" opacity="0.7"/>
+    </svg>`,
+    droplet: `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 2 C10 2 4 9 4 13 a6 6 0 0 0 12 0 C16 9 10 2 10 2Z" fill="#C9956C" opacity="0.8"/>
+    </svg>`,
+    'syringe-filled': `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="9" width="12" height="2" rx="1" fill="#C9956C"/>
+      <rect x="3" y="7" width="9" height="6" rx="2" fill="#C9956C" opacity="0.4"/>
+      <rect x="3" y="8" width="7" height="4" rx="1" fill="#C9956C" opacity="0.8"/>
+      <rect x="14" y="9.5" width="4" height="1" fill="#C9956C"/>
+    </svg>`,
+    'syringe-outline': `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="9" width="12" height="2" rx="1" fill="#C9956C"/>
+      <rect x="3" y="7" width="9" height="6" rx="2" stroke="#C9956C" stroke-width="1.2" fill="none"/>
+      <rect x="14" y="9.5" width="4" height="1" fill="#C9956C"/>
+    </svg>`
+  };
+
+  const TAP_GLOW_COLORS = {
+    'Anti-Aging':   '#C9956C',
+    'Recovery':     '#22C55E',
+    'Performance':  '#3B82F6',
+    'Cognitive':    '#8B5CF6',
+    'Fat Loss':     '#F59E0B',
+    'Sexual Health':'#EC4899',
+    'Hair':         '#06B6D4',
+    'Skin':         '#F472B6'
+  };
+
+  let _tapModalProduct = null;
+  let _tapSelectedPkg  = TAP_PACKAGES[0];
+
+  function tapParseName(fullName) {
+    if (!fullName) return { display: 'Unknown', dosage: '' };
+    const m = fullName.match(/^(.+?)\s+([\d.]+\s*mg.*)$/i);
+    if (m) return { display: m[1].trim(), dosage: m[2].trim() };
+    return { display: fullName.trim(), dosage: '' };
+  }
+
+  function tapUpdateTotal() {
+    if (!_tapModalProduct) return;
+    const base  = _tapModalProduct.price || 0;
+    const extra = _tapSelectedPkg.priceAdd || 0;
+    const total = base + extra;
+    const breakdown = document.getElementById('packageModalTotalBreakdown');
+    const price     = document.getElementById('packageModalTotalPrice');
+    if (extra > 0 && breakdown) {
+      breakdown.textContent = `₱${base.toLocaleString()} + ₱${extra.toLocaleString()} add-on`;
+    } else if (breakdown) {
+      breakdown.textContent = '';
+    }
+    if (price) price.textContent = `₱${total.toLocaleString()}`;
+  }
+
+  function openPackageModal(product) {
+    if (!product) return;
+    _tapModalProduct = product;
+    _tapSelectedPkg  = TAP_PACKAGES[0];
+
+    const modal = document.getElementById('packageModal');
+    if (!modal) return;
+
+    /* Populate vial */
+    const vialWrap = document.getElementById('packageModalVial');
+    if (vialWrap) {
+      if (product.image_url && product.image_url !== '') {
+        vialWrap.innerHTML = `<img src="${product.image_url}" alt="${product.name || ''}"
+          style="max-width:180px;max-height:300px;object-fit:contain;" loading="lazy"/>`;
+      } else {
+        try {
+          vialWrap.innerHTML = generateVialSVG(product.name || 'Unknown', product.category || 'Recovery');
+        } catch(e) {
+          vialWrap.innerHTML = '';
+        }
+      }
+    }
+
+    /* Glow color */
+    const glow = document.getElementById('packageModalVialGlow');
+    if (glow) {
+      glow.style.background = TAP_GLOW_COLORS[product.category] || '#C9956C';
+    }
+
+    /* Name / dosage */
+    const parsed = tapParseName(product.name);
+    const nameEl = document.getElementById('packageModalName');
+    const doseEl = document.getElementById('packageModalDosage');
+    if (nameEl) nameEl.textContent = parsed.display;
+    if (doseEl) doseEl.textContent = parsed.dosage;
+
+    /* Description */
+    const descEl = document.getElementById('packageModalDescription');
+    if (descEl) descEl.textContent = product.description || '';
+
+    /* Recon note — only for peptides that need it */
+    const reconEl = document.getElementById('packageModalReconNote');
+    if (reconEl) {
+      const noRecon = ['Oral','Topical','Cream','Drop','Oil'];
+      const needsRecon = !noRecon.some(k => (product.category || '').includes(k) || (product.name || '').includes(k));
+      reconEl.style.display = needsRecon ? 'block' : 'none';
+    }
+
+    /* Package options */
+    const optsCont = document.getElementById('packageModalOptions');
+    if (optsCont) {
+      optsCont.innerHTML = TAP_PACKAGES.map((pkg, i) => {
+        const isSel = (i === 0);
+        const priceLabel = pkg.priceAdd === 0
+          ? `<span class="pkg-opt-price pkg-free">Included</span>`
+          : `<span class="pkg-opt-price">+₱${pkg.priceAdd.toLocaleString()}</span>`;
+        const badgeHTML = pkg.badge
+          ? `<span class="pkg-badge ${pkg.badgeClass}">${pkg.badge}</span>` : '';
+        return `
+        <div class="pkg-opt${isSel ? ' pkg-selected' : ''}" data-pkg-id="${pkg.id}">
+          <div class="pkg-radio"></div>
+          <div class="pkg-opt-icon">${TAP_PKG_ICONS[pkg.icon] || ''}</div>
+          <div class="pkg-opt-text">
+            <div class="pkg-opt-title">${pkg.title}${badgeHTML}</div>
+            <div class="pkg-opt-sub">${pkg.sub}</div>
+          </div>
+          ${priceLabel}
+        </div>`;
+      }).join('');
+    }
+
+    tapUpdateTotal();
+
+    /* Add-to-cart button state */
+    const addBtn = document.getElementById('packageModalAddBtn');
+    if (addBtn) {
+      addBtn.disabled  = product.stock === 0;
+      addBtn.textContent = product.stock === 0 ? 'Out of Stock' : 'ADD TO CART';
+    }
+
+    /* Show modal */
+    const container = document.getElementById('packageModalContainer');
+    if (container) {
+      container.classList.remove('closing');
+      container.classList.add('opening');
+    }
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePackageModal() {
+    const modal     = document.getElementById('packageModal');
+    const container = document.getElementById('packageModalContainer');
+    if (!modal) return;
+    if (container) {
+      container.classList.remove('opening');
+      container.classList.add('closing');
+    }
+    setTimeout(() => {
+      modal.style.display = 'none';
+      if (container) container.classList.remove('closing');
+      document.body.style.overflow = '';
+      _tapModalProduct = null;
+    }, 220);
+  }
+
+  function tapWireCardClicks(gridId, productsArray) {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.querySelectorAll('[data-id]').forEach(card => {
+      card.addEventListener('click', () => {
+        const product = productsArray.find(p => p.id === card.dataset.id);
+        if (product) openPackageModal(product);
+      });
+    });
+  }
+
+  /* Wire all modal events ONCE */
+  (function initPackageModal() {
+    /* Package option selection — event delegation */
+    document.addEventListener('click', e => {
+      const opt = e.target.closest('.pkg-opt');
+      if (!opt) return;
+      const optsCont = document.getElementById('packageModalOptions');
+      if (!optsCont || !optsCont.contains(opt)) return;
+      optsCont.querySelectorAll('.pkg-opt').forEach(o => o.classList.remove('pkg-selected'));
+      opt.classList.add('pkg-selected');
+      _tapSelectedPkg = TAP_PACKAGES.find(p => p.id === opt.dataset.pkgId) || TAP_PACKAGES[0];
+      tapUpdateTotal();
+    });
+
+    /* Add to cart */
+    document.addEventListener('click', e => {
+      if (e.target.id !== 'packageModalAddBtn') return;
+      if (!_tapModalProduct || e.target.disabled) return;
+      const productToAdd = {
+        id:        _tapModalProduct.id,
+        name:      _tapModalProduct.name,
+        price:     _tapModalProduct.price + _tapSelectedPkg.priceAdd,
+        category:  _tapModalProduct.category,
+        image_url: _tapModalProduct.image_url || ''
+      };
+      if (_tapSelectedPkg.priceAdd > 0) {
+        productToAdd.name = `${_tapModalProduct.name} (${_tapSelectedPkg.title})`;
+      }
+      addToCart(productToAdd, 1);
+      closePackageModal();
+    });
+
+    /* Close button */
+    document.addEventListener('click', e => {
+      if (e.target.id === 'packageModalClose') closePackageModal();
+    });
+
+    /* Backdrop click */
+    document.addEventListener('click', e => {
+      if (e.target.id === 'packageModalBackdrop') closePackageModal();
+    });
+
+    /* Escape key */
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('packageModal');
+        if (modal && modal.style.display === 'flex') closePackageModal();
+      }
+    });
+  })();
+
   </script>
+
+  <!-- ══════════════════════════════════════════════════
+       PACKAGE MODAL
+  ══════════════════════════════════════════════════ -->
+  <div id="packageModal"
+    style="display:none;position:fixed;inset:0;z-index:10000;
+    align-items:center;justify-content:center;">
+
+    <div id="packageModalBackdrop"
+      style="position:absolute;inset:0;background:rgba(10,10,15,0.92);"></div>
+
+    <div id="packageModalContainer"
+      style="position:relative;z-index:1;display:flex;
+      width:95vw;max-width:900px;background:#0D1117;
+      border:1px solid rgba(201,149,108,0.2);
+      border-radius:16px;max-height:90vh;overflow:hidden;">
+
+      <div id="packageModalLeft"
+        style="width:45%;background:#080D14;display:flex;
+        align-items:center;justify-content:center;
+        padding:40px;min-height:420px;position:relative;flex-shrink:0;">
+        <div id="packageModalVialGlow"
+          style="position:absolute;width:160px;height:160px;
+          border-radius:50%;filter:blur(60px);opacity:0.15;pointer-events:none;"></div>
+        <div id="packageModalVial"
+          style="width:100%;display:flex;align-items:center;justify-content:center;"></div>
+      </div>
+
+      <div id="packageModalRight"
+        style="width:55%;padding:36px;overflow-y:auto;position:relative;">
+
+        <button id="packageModalClose"
+          style="position:absolute;top:20px;right:20px;background:#1A1F2E;
+          color:#E8E0D5;border:1px solid rgba(232,224,213,0.3);border-radius:6px;
+          padding:6px 12px;font-family:Inter,sans-serif;font-size:11px;
+          letter-spacing:0.1em;cursor:pointer;transition:border-color .2s,color .2s;">
+          CLOSE [X]
+        </button>
+
+        <h2 id="packageModalName"
+          style="font-family:'Playfair Display',Georgia,serif;font-size:28px;
+          font-style:italic;color:white;margin:0 0 4px;padding-right:80px;
+          line-height:1.2;"></h2>
+
+        <p id="packageModalDosage"
+          style="font-family:Inter,sans-serif;font-size:12px;color:#C9956C;
+          text-transform:uppercase;letter-spacing:0.2em;margin:0 0 20px;"></p>
+
+        <p style="font-family:Inter,sans-serif;font-size:10px;color:#888;
+          text-transform:uppercase;letter-spacing:0.2em;margin:0 0 8px;">
+          REAGENT MONOGRAPH ABSTRACT</p>
+
+        <p id="packageModalDescription"
+          style="font-family:Inter,sans-serif;font-size:14px;color:#E8E0D5;
+          line-height:1.7;margin:0 0 8px;"></p>
+
+        <p id="packageModalReconNote"
+          style="font-family:Inter,sans-serif;font-size:12px;color:#C9956C;
+          font-style:italic;margin:0 0 20px;">
+          *Requires reconstitution using sterile bacteriostatic solutes (BacWater)
+          before clinical validation tests.
+        </p>
+
+        <p style="font-family:Inter,sans-serif;font-size:11px;color:#888;
+          text-transform:uppercase;letter-spacing:0.15em;margin:0 0 12px;">
+          ⚡ SELECT PACKAGE OPTION:</p>
+
+        <div id="packageModalOptions"></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;
+          background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+          border-radius:10px;padding:14px 16px;margin-top:12px;">
+          <div>
+            <span style="font-family:Inter,sans-serif;font-size:11px;color:#888;
+              text-transform:uppercase;letter-spacing:0.1em;display:block;">TOTAL PRICE:</span>
+            <span id="packageModalTotalBreakdown"
+              style="font-family:Inter,sans-serif;font-size:11px;color:#555;
+              display:block;margin-top:2px;"></span>
+          </div>
+          <span id="packageModalTotalPrice"
+            style="font-family:'Playfair Display',Georgia,serif;font-size:28px;
+            font-weight:700;color:#C9956C;transition:opacity .2s;"></span>
+        </div>
+
+        <button id="packageModalAddBtn"
+          style="width:100%;padding:16px;margin-top:14px;
+          font-family:'Playfair Display',Georgia,serif;font-size:16px;
+          font-style:italic;color:white;background:#C9956C;border:none;
+          border-radius:10px;cursor:pointer;transition:filter .2s,transform .2s;">
+          ADD TO CART
+        </button>
+
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

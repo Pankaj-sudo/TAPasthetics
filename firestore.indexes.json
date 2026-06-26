@@ -60,7 +60,17 @@
     },
 
     {
-      "comment": "Products — active products for New Arrivals section",
+      "comment": "Products — all active products for main shop grid",
+      "collectionGroup": "products",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active",  "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+
+    {
+      "comment": "Products — active new arrivals section",
       "collectionGroup": "products",
       "queryScope": "COLLECTION",
       "fields": [
