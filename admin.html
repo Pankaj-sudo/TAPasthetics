@@ -233,8 +233,22 @@ tbody tr:hover td{background:rgba(201,149,108,.04)}
 .od-totals .row{font-size:13px;color:rgba(26,26,46,.55);margin-bottom:3px}
 .od-totals .total{font-family:var(--fh);font-size:20px;font-style:italic;color:var(--rg);font-weight:700}
 
-.od-proof-img{width:100%;border-radius:6px;background:rgba(232,224,213,.3);object-fit:contain;max-height:200px;display:block}
-.od-proof-link{font-size:12px;color:var(--rg);margin-top:4px;display:inline-block}
+.od-proof-wrap{position:relative;border-radius:8px;overflow:hidden;background:rgba(26,26,46,.05);border:1px solid rgba(26,26,46,.1);margin-bottom:10px}
+.od-proof-img{width:100%;display:block;object-fit:contain;max-height:260px;cursor:zoom-in;transition:opacity .2s}
+.od-proof-img:hover{opacity:.9}
+.od-proof-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.od-proof-link{font-size:12px;font-weight:600;color:var(--rg);padding:5px 12px;border:1px solid var(--rg);border-radius:4px;transition:background .2s,color .2s;text-decoration:none;display:inline-block}
+.od-proof-link:hover{background:var(--rg);color:#fff}
+.od-proof-none{font-size:13px;color:rgba(26,26,46,.4);font-style:italic;padding:24px;text-align:center;background:rgba(26,26,46,.03);border:1px dashed rgba(26,26,46,.15);border-radius:8px}
+/* Proof thumbnail in orders table */
+.proof-thumb{width:32px;height:32px;border-radius:4px;object-fit:cover;border:1px solid rgba(26,26,46,.12);cursor:zoom-in;vertical-align:middle}
+.proof-icon{display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;font-size:16px;opacity:.3;vertical-align:middle}
+/* Proof lightbox */
+#proof-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;cursor:zoom-out}
+#proof-lightbox.open{display:flex}
+#proof-lightbox img{max-width:92vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6)}
+#proof-lightbox-close{position:fixed;top:20px;right:24px;font-size:32px;color:#fff;cursor:pointer;line-height:1;opacity:.7;transition:opacity .2s}
+#proof-lightbox-close:hover{opacity:1}
 
 .od-mgmt-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(26,26,46,.4);margin-bottom:.5rem;margin-top:1rem;display:block}
 .od-mgmt-label:first-child{margin-top:0}
@@ -499,7 +513,7 @@ tbody tr:hover td{background:rgba(201,149,108,.04)}
       <div class="tbl-wrap">
         <div class="tbl-scroll">
           <table>
-            <thead><tr><th>Order ID</th><th>Date &amp; Time</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Order Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Order ID</th><th>Date &amp; Time</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Order Status</th><th>Proof</th><th>Actions</th></tr></thead>
             <tbody id="orders-body"></tbody>
           </table>
         </div>
@@ -835,6 +849,15 @@ document.getElementById('sb-overlay').addEventListener('click', closeSidebar);
 document.getElementById('btn-login').addEventListener('click', handleLogin);
 document.getElementById('auth-pw').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
 
+/* Authorised admin emails — add more here if needed */
+const ADMIN_EMAILS = ['pankaj.ydv707@gmail.com'];
+
+function isAdminUser(tok, user) {
+  /* Allow if custom claim is set OR if email is in the whitelist */
+  return tok.claims.admin === true
+      || ADMIN_EMAILS.includes((user.email || '').toLowerCase());
+}
+
 async function handleLogin() {
   const email = document.getElementById('auth-email').value.trim();
   const pw    = document.getElementById('auth-pw').value;
@@ -847,21 +870,23 @@ async function handleLogin() {
     if (isCfg) {
       const cred = await signInWithEmailAndPassword(auth, email, pw);
       const tok  = await cred.user.getIdTokenResult();
-      if (!tok.claims.admin) {
+      if (!isAdminUser(tok, cred.user)) {
         errEl.textContent = '⛔ Access denied. This account does not have admin privileges.';
         setTimeout(() => signOut(auth), 3000);
         return;
       }
+      /* showDashboard called by onAuthStateChanged */
     } else {
       /* Demo mode */
       showDashboard({ email, displayName: 'Demo Admin' });
     }
   } catch(e) {
     const msgs = {
-      'auth/user-not-found':'No account found with this email.',
-      'auth/wrong-password':'Incorrect password.',
-      'auth/invalid-email':'Invalid email address.',
-      'auth/too-many-requests':'Too many attempts. Try again later.'
+      'auth/user-not-found':    'No account found with this email.',
+      'auth/wrong-password':    'Incorrect password.',
+      'auth/invalid-credential':'Incorrect email or password.',
+      'auth/invalid-email':     'Invalid email address.',
+      'auth/too-many-requests': 'Too many attempts. Try again later.'
     };
     errEl.textContent = msgs[e.code] || e.message;
   } finally {
@@ -874,15 +899,22 @@ if (auth) {
     if (!user) { showAuthScreen(); return; }
     try {
       const tok = await user.getIdTokenResult();
-      if (!tok.claims.admin) {
+      if (!isAdminUser(tok, user)) {
         document.getElementById('auth-err').textContent = '⛔ Access denied. Not an admin account.';
-        document.getElementById('auth-screen').style.display = 'flex';
-        document.getElementById('app').classList.remove('visible');
+        showAuthScreen();
         setTimeout(() => signOut(auth), 3000);
         return;
       }
       showDashboard(user);
-    } catch(e) { showDashboard(user); }
+    } catch(e) {
+      /* If token fetch fails but we can still check email whitelist */
+      if (ADMIN_EMAILS.includes((user.email || '').toLowerCase())) {
+        showDashboard(user);
+      } else {
+        showAuthScreen();
+        setTimeout(() => signOut(auth), 3000);
+      }
+    }
   });
 }
 
@@ -1105,7 +1137,15 @@ function renderOrdersTable() {
   const page   = filteredOrders.slice(start, start + PAGE_SIZE);
   const tbody  = document.getElementById('orders-body');
   if (!tbody) return;
-  tbody.innerHTML = page.map(o => `
+  tbody.innerHTML = page.map(o => {
+    const isRealProof = o.payment_proof_url && !o.payment_proof_url.startsWith('proof-local');
+    const proofCell = isRealProof
+      ? `<img src="${o.payment_proof_url}" class="proof-thumb"
+            alt="Proof" title="Click to view"
+            onclick="event.stopPropagation();openLightbox('${o.payment_proof_url}')"
+            onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'proof-icon',textContent:'🧾',title:'Image unavailable'}))"/>`
+      : `<span class="proof-icon" title="No proof uploaded">—</span>`;
+    return `
     <tr>
       <td><span class="td-id" onclick="copyText('${o.order_id||o._id}')" title="Click to copy">${o.order_id||o._id}</span></td>
       <td style="white-space:nowrap">${fmtDate(o.created_at)}</td>
@@ -1114,8 +1154,10 @@ function renderOrdersTable() {
       <td style="white-space:nowrap">${fmt(o.total)}</td>
       <td>${payBadge(o.payment_status)}</td>
       <td>${statusBadge(o.order_status)}</td>
+      <td style="text-align:center">${proofCell}</td>
       <td><div class="actions-cell"><button class="btn-rg sm" onclick="openOrderDetail('${o._id}')">View</button></div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   renderPagination('orders-pagination', Math.ceil(filteredOrders.length / PAGE_SIZE), ordPage, p => { ordPage = p; renderOrdersTable(); });
 }
@@ -1183,10 +1225,21 @@ window.openOrderDetail = async function(docId) {
   const itemRows = (order.items||[]).map(i =>
     `<tr><td>${i.name||'—'}</td><td>${i.quantity||1}</td><td>${fmt(i.price)}</td><td>${fmt((i.price||0)*(i.quantity||1))}</td></tr>`
   ).join('');
-  const proofHTML = order.payment_proof_url
-    ? `<img src="${order.payment_proof_url}" class="od-proof-img" alt="Payment proof"/>
-       <a href="${order.payment_proof_url}" target="_blank" rel="noopener" class="od-proof-link">View Full Size ↗</a>`
-    : `<p style="font-size:13px;color:var(--muted);font-style:italic">No proof uploaded.</p>`;
+  const isRealProof = order.payment_proof_url
+    && !order.payment_proof_url.startsWith('proof-local');
+  const proofHTML = isRealProof
+    ? `<div class="od-proof-wrap">
+         <img src="${order.payment_proof_url}"
+              class="od-proof-img"
+              alt="Payment proof — click to enlarge"
+              onclick="openLightbox('${order.payment_proof_url}')"
+              onerror="this.closest('.od-proof-wrap').outerHTML='<div class=\\'od-proof-none\\'>⚠ Image URL exists but could not load.<br><small>${order.payment_proof_url}</small></div>'"/>
+       </div>
+       <div class="od-proof-actions">
+         <a href="${order.payment_proof_url}" target="_blank" rel="noopener" class="od-proof-link">↗ Open in new tab</a>
+         <a href="${order.payment_proof_url}" download class="od-proof-link">⬇ Download</a>
+       </div>`
+    : `<div class="od-proof-none">📎 No payment proof uploaded for this order.</div>`;
 
   document.getElementById('od-col-items').innerHTML = `
     <span class="od-section-lbl">Order Items</span>
@@ -1728,6 +1781,27 @@ Chart.defaults.plugins.tooltip.borderWidth      = 1;
 Chart.defaults.plugins.tooltip.titleColor       = '#C9956C';
 Chart.defaults.plugins.tooltip.bodyColor        = 'rgba(232,224,213,.75)';
 Chart.defaults.plugins.tooltip.padding          = 10;
+</script>
+
+<!-- PROOF LIGHTBOX -->
+<div id="proof-lightbox" onclick="closeLightbox()">
+  <span id="proof-lightbox-close" onclick="closeLightbox()">✕</span>
+  <img id="proof-lightbox-img" src="" alt="Payment proof full size"/>
+</div>
+<script>
+function openLightbox(src) {
+  const lb  = document.getElementById('proof-lightbox');
+  const img = document.getElementById('proof-lightbox-img');
+  img.src   = src;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('proof-lightbox').classList.remove('open');
+  document.getElementById('proof-lightbox-img').src = '';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 </script>
 </body>
 </html>

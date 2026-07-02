@@ -13,7 +13,8 @@ service firebase.storage {
 
     function isAdmin() {
       return request.auth != null
-          && request.auth.token.admin == true;
+          && (request.auth.token.admin == true
+              || request.auth.token.email == 'pankaj.ydv707@gmail.com');
     }
 
     // Uploaded file must be an image (JPEG, PNG, WebP, GIF, etc.)
@@ -51,13 +52,10 @@ service firebase.storage {
       // Admin can view all payment proofs from the Order Detail modal
       allow read: if isAdmin();
 
-      // Authenticated customer uploads their GCash screenshot at checkout.
-      // File must be an image and under 10 MB.
-      // No further constraint on orderId here — the Firestore rule on
-      // /orders/{orderId} already enforces ownership at order creation.
-      allow create: if isAuthenticated()
-                   && isImage()
-                   && isUnder10MB();
+      // Any visitor (signed-in or guest) may upload a payment screenshot.
+      // Reads are restricted to admins only, so a guest cannot access
+      // other customers' proofs even though they can write.
+      allow create: if isImage() && isUnder10MB();
 
       // Proof is immutable once uploaded by the customer.
       // Admin may overwrite or delete if correction is needed.

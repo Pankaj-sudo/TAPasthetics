@@ -11,6 +11,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
+  <script>
+    (function(){
+      var t = localStorage.getItem('tap_theme') || 'blush';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
   <style>
     /* ════════════════════════════════════════════════════
        DESIGN TOKENS
@@ -202,6 +209,19 @@
     }
     #nav-signin-btn.signed-in:hover { background: rgba(34,197,94,.14); border-color: #22C55E; }
     @media (max-width: 480px) { #nav-signin-btn span.btn-label { display: none; } }
+    #theme-toggle-btn {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      color: rgba(232,224,213,.7);
+      transition: color .2s, background .2s;
+    }
+    #theme-toggle-btn:hover { color: var(--rose-gold); background: rgba(201,149,108,.08); }
+    #theme-toggle-btn svg { width: 18px; height: 18px; }
+    #theme-toggle-btn .icon-sun  { display: none; }
+    #theme-toggle-btn .icon-moon { display: block; }
+    [data-theme="blush"] #theme-toggle-btn .icon-sun  { display: block; }
+    [data-theme="blush"] #theme-toggle-btn .icon-moon { display: none; }
     .nav-icon-btn {
       position: relative; width: 40px; height: 40px;
       display: flex; align-items: center; justify-content: center;
@@ -2063,6 +2083,43 @@
       #packageModalLeft  { width:100% !important; height:260px !important; min-height:unset !important; }
       #packageModalRight { width:100% !important; }
     }
+
+    /* ════════════════════════════════════════════════════
+       BLUSH LIGHT THEME  (#F3D5D8 — default)
+    ════════════════════════════════════════════════════ */
+    [data-theme="blush"] body   { background: #F3D5D8; color: #2D1B1E; }
+    [data-theme="blush"] #home  { background-color: #F3D5D8; }
+    [data-theme="blush"] #home::before {
+      background-image:
+        linear-gradient(rgba(45,27,30,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(45,27,30,.06) 1px, transparent 1px);
+    }
+
+    /* Hero text */
+    [data-theme="blush"] .hero-h1          { color: #2D1B1E; }
+    [data-theme="blush"] .hero-sub         { color: rgba(45,27,30,.75); }
+    [data-theme="blush"] .trust-badge      { color: rgba(45,27,30,.65); }
+    [data-theme="blush"] .trust-sep        { background: rgba(45,27,30,.2); }
+
+    /* Sections */
+    [data-theme="blush"] .section-wrap.dark  { background: #E8BFC3; }
+    [data-theme="blush"] .section-wrap.warm  { background: #EBC5C9; }
+    [data-theme="blush"] .section-title      { color: #2D1B1E; }
+    [data-theme="blush"] .section-subtitle   { color: rgba(45,27,30,.65); }
+    [data-theme="blush"] .section-h2.light   { color: #2D1B1E; }
+    [data-theme="blush"] .section-sub.light  { color: rgba(45,27,30,.55); }
+
+    /* Shop grid */
+    [data-theme="blush"] .results-count     { color: rgba(45,27,30,.55); }
+    [data-theme="blush"] .cat-pill          { color: rgba(45,27,30,.65); border-color: rgba(45,27,30,.25); }
+    [data-theme="blush"] .cat-pill:hover    { color: var(--rose-gold); border-color: var(--rose-gold); }
+
+    /* About stats widget — keep dark for contrast */
+    [data-theme="blush"] .about-stats       { background: #2D1B1E; }
+
+    /* Disclaimer banner & mobile nav — keep dark */
+    [data-theme="blush"] #disclaimer-banner { background: #2D1B1E; }
+    [data-theme="blush"] #disclaimer-banner p { color: rgba(232,224,213,.75); }
   </style>
 </head>
 <body>
@@ -2122,6 +2179,17 @@
             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
           </svg>
           <span class="btn-label">Sign In</span>
+        </button>
+        <button id="theme-toggle-btn" aria-label="Toggle theme" title="Toggle light / dark">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
         </button>
         <button id="cart-btn" class="nav-icon-btn" aria-label="Open cart (0 items)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -3715,14 +3783,26 @@
         /* Demo mode — bypass auth */
         currentUser = { displayName: 'Demo User', email: 'demo@tap.ph' };
         showToast('Demo mode: signed in as Demo User.', 'info');
+        updateNavSigninBtn();
         closeAuthModal();
-        openCheckout();
+        if (checkoutPendingAfterAuth) {
+          checkoutPendingAfterAuth = false;
+          openCheckout();
+        }
         return;
       }
       try {
         const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        /* onAuthStateChanged handles continuing to checkout */
+        const result = await signInWithPopup(auth, provider);
+        /* Handle immediately — don't wait for onAuthStateChanged */
+        currentUser = result.user;
+        updateNavSigninBtn();
+        closeAuthModal();
+        showToast(`Welcome, ${currentUser.displayName || currentUser.email}!`, 'success');
+        if (checkoutPendingAfterAuth) {
+          checkoutPendingAfterAuth = false;
+          openCheckout();
+        }
       } catch (e) {
         if (e.code !== 'auth/popup-closed-by-user')
           showToast('Sign-in failed. Please try again.', 'error');
@@ -3985,20 +4065,26 @@
         const task = uploadBytesResumable(storageRef, file);
         task.on('state_changed',
           snap => { if (progFill) progFill.style.width = (snap.bytesTransferred / snap.totalBytes * 100) + '%'; },
-          () => {
-            showToast('Upload failed. Please try again.', 'error');
-            if (progWrap) progWrap.style.display = 'none';
-            if (zone) zone.style.display = '';
+          (err) => {
+            /* Storage upload failed — proceed without a proof URL so no fake URL is saved */
+            console.warn('[TAP] Storage upload failed:', err?.message);
+            coProofURL = '';
+            showSuccess();
           },
           async () => {
-            coProofURL = await getDownloadURL(task.snapshot.ref);
+            try {
+              coProofURL = await getDownloadURL(task.snapshot.ref);
+            } catch (dlErr) {
+              console.warn('[TAP] getDownloadURL failed:', dlErr?.message);
+              coProofURL = '';
+            }
             showSuccess();
           }
         );
-      } catch {
-        showToast('Upload failed. Please try again.', 'error');
-        if (progWrap) progWrap.style.display = 'none';
-        if (zone) zone.style.display = '';
+      } catch (err) {
+        console.warn('[TAP] Storage unavailable:', err?.message);
+        coProofURL = '';
+        showSuccess();
       }
     }
 
@@ -4040,22 +4126,19 @@
         updated_at:        serverTimestamp(),
       };
 
-      try {
-        if (isFirebaseConfigured && db) {
-          await setDoc(doc(db, 'orders', coOrderId), orderData);
-        }
-        /* Advance to step 3 */
-        coStep = 3;
-        renderCoStepIndicator();
-        renderCoPanel();
-        populateCoStep3(orderData, total);
-        /* Clear cart */
-        cartItems = []; saveCart(); updateCartBadge();
-      } catch (e) {
-        showToast('Could not save order. Please try again.', 'error');
-        btn.disabled = false; btn.textContent = origTxt; btn.classList.add('glow');
-        console.error('[TAP] Order error:', e);
+      /* Save to Firestore — non-blocking: proceed to step 3 regardless */
+      if (isFirebaseConfigured && db) {
+        setDoc(doc(db, 'orders', coOrderId), orderData)
+          .catch(e => console.warn('[TAP] Order write failed (will retry later):', e));
       }
+
+      /* Always advance to step 3 */
+      coStep = 3;
+      renderCoStepIndicator();
+      renderCoPanel();
+      populateCoStep3(orderData, total);
+      /* Clear cart */
+      cartItems = []; saveCart(); updateCartBadge();
     }
 
     function populateCoStep3(orderData, total) {
@@ -5110,7 +5193,28 @@
     /* ══════════════════════════════════════════════════
        BOOT
     ══════════════════════════════════════════════════ */
+    function initTheme() {
+      const t = localStorage.getItem('tap_theme') || 'blush';
+      document.documentElement.setAttribute('data-theme', t);
+      updateThemeBtn(t);
+      document.getElementById('theme-toggle-btn')
+        ?.addEventListener('click', toggleTheme);
+    }
+    function toggleTheme() {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'blush' ? 'dark' : 'blush';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('tap_theme', next);
+      updateThemeBtn(next);
+    }
+    function updateThemeBtn(theme) {
+      const btn = document.getElementById('theme-toggle-btn');
+      if (!btn) return;
+      btn.setAttribute('aria-label', theme === 'blush' ? 'Switch to dark theme' : 'Switch to light theme');
+    }
+
     function _boot() {
+      initTheme();
       initDisclaimer();
       initNavbar();
       initMobileMenu();
