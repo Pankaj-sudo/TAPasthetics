@@ -212,7 +212,7 @@ exports.onOrderCreated = onDocumentCreated(
       </p>
 
       <p style="font-family:Arial;font-size:13px;color:#1A1A2E">
-        <a href="YOUR_ADMIN_URL/admin.html" style="color:#C9956C">Open Admin Dashboard →</a>
+        <a href="https://asthetics-d8f97.web.app/admin.html" style="color:#C9956C">Open Admin Dashboard →</a>
       </p>
     `;
 
@@ -354,7 +354,7 @@ exports.onOrderStatusUpdated = onDocumentUpdated(
             We would love your feedback — message us on Facebook @TAPeptidesPH.
           </p>
           <p style="text-align:center;margin:28px 0">
-            <a href="YOUR_STORE_URL" style="background:#C9956C;color:white;padding:12px 28px;text-decoration:none;border-radius:4px;font-family:Arial;font-size:14px;display:inline-block">
+            <a href="https://asthetics-d8f97.web.app" style="background:#C9956C;color:white;padding:12px 28px;text-decoration:none;border-radius:4px;font-family:Arial;font-size:14px;display:inline-block">
               Shop Again →
             </a>
           </p>

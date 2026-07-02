@@ -41,8 +41,9 @@ service cloud.firestore {
         // Must have at least one item with a positive total
         && d.items.size() > 0
         && d.total > 0
-        // Customer email must match authenticated user
-        && d.customer_email == request.auth.token.email;
+        // Anonymous auth sessions have no email in the token — validate format only
+        && d.customer_email is string
+        && d.customer_email.matches('.*@.*\\..*');
     }
 
     // ══════════════════════════════════════════════
